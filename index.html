@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
+        <style type="text/css">
+        html, body, #map {
+           height:100%;
+           width:100%;
+           padding:0px;
+           margin:0px;
+        }
+        </style>
+        <title>OSM Map - Rcslopes</title>
+    </head>
+    <body>
+        <div id="map"></div>
+        <!-- Make sure you put this AFTER Leaflet's CSS -->
+        <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin=""></script>
+	<script type="text/javascript">
+            var lat = 46.227638;
+            var lon = 2.213749;
+            var macarte = null;
+
+            var slopes = L.layerGroup();
+            slopes.getAttribution = function() { return '<a href="https://www.rc-slopes.com">RC-Slopes</a>'; };
+
+            // Fonction d'initialisation de la carte
+            function initMap() {
+
+              var Esri_WorldImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                  attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, ' +
+                  'AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community</a>'
+                   });
+
+              // var Esri_WorldTopoMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+	      //    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, ' +
+              //    'FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+              //});
+
+              var OpenStreetMapFR = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+                  maxZoom: '17',
+                  attribution: 'données © <a href="//openstreetmap.fr">OpenStreetMap</a>'
+                   });
+
+              var OpenStreetMap_Mapnik = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	          maxZoom: '19',
+	          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    });
+
+              var OpenTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                  maxZoom: '17',
+                  attribution: 'données © <a href="//opentopomap.org/">OpenTopoMap</a>'
+                   });
+
+              var baseLayers = {
+                 "Vue Satellite": Esri_WorldImagery,
+                 // "World Topo": Esri_WorldTopoMap,
+                 "OSM FR": OpenStreetMapFR,
+                 "OSM Mapnik": OpenStreetMap_Mapnik,
+                 "OpenTopoMap": OpenTopoMap
+              };
+
+
+	      var map = L.map('map', {
+		center: [lat, lon],
+		zoom: 6,
+		layers: [Esri_WorldImagery, OpenStreetMapFR, OpenStreetMap_Mapnik, OpenTopoMap, slopes]
+	      });
+
+	      var overlays = {
+		"Pentes": slopes
+ 	      };
+
+	      L.control.layers(baseLayers, overlays).addTo(map);
+            }
+
+            function loadXMLDoc() {
+               var xmlhttp = new XMLHttpRequest();
+               xmlhttp.onreadystatechange = function() {
+                  if (this.readyState == 4 && this.status == 200) {
+                     myFunction(this);
+                  }
+               };
+               xmlhttp.open("GET", "rc-slopes-data.xml", true);
+               xmlhttp.send();
+            }
+
+            function myFunction(xml) {
+                var x, nom, i, xmlDoc, txt, marker, info;
+                xmlDoc = xml.responseXML;
+                txt = "";
+                x = xmlDoc.getElementsByTagName("marker");
+                nom = xmlDoc.getElementsByTagName("nom");
+
+                for (i = 0; i< x.length; i++) {
+                 info =  "<h3>" + nom[i].childNodes[0].nodeValue + "</h3>";
+                 info += "<ul><li>" + x[i].getAttribute('latlng2') + "</li>";
+                 info += "<li>" + x[i].getAttribute('lat') + ", " + x[i].getAttribute('lng') + "</li></ul>";
+                 info += "<p>Description : " + x[i].getAttribute('legendeFR') + "</p><br>Ajoutée le " + x[i].getAttribute('dat') 
+                 var author = x[i].getAttribute('psd');
+                 if (author != "0") {
+                     info += " par " + author;
+                 }
+                 marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')]).addTo(slopes);
+                 marker.bindPopup(info);
+                 }
+            }
+
+            window.onload = function(){
+		initMap(); 
+                loadXMLDoc();
+            };
+         </script>
+    </body>
+</html>
