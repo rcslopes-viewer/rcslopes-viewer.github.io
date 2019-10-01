@@ -20,9 +20,11 @@
 	<script type="text/javascript">
             var lat = 46.227638;
             var lon = 2.213749;
-            var macarte = null;
 
-            var slopes = L.layerGroup();
+            var slopes = L.layerGroup();   // Pente
+            var slopesP1 = L.layerGroup(); // Parking
+            var slopesP2 = L.layerGroup();
+            var slopesP3 = L.layerGroup();
             slopes.getAttribution = function() { return '<a href="https://www.rc-slopes.com">RC-Slopes</a>'; };
 
             // Fonction d'initialisation de la carte
@@ -65,11 +67,14 @@
 	      var map = L.map('map', {
 		center: [lat, lon],
 		zoom: 6,
-		layers: [Esri_WorldImagery, OpenStreetMapFR, OpenStreetMap_Mapnik, OpenTopoMap, slopes]
+		layers: [Esri_WorldImagery, slopes]
 	      });
 
 	      var overlays = {
-		"Pentes": slopes
+		"Pentes": slopes,
+		"Parking": slopesP1,
+		"P2": slopesP2,
+		"P3": slopesP3
  	      };
 
 	      L.control.layers(baseLayers, overlays).addTo(map);
@@ -104,6 +109,14 @@
                  }
                  marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')]).addTo(slopes);
                  marker.bindPopup(info);
+                 info =  "<h3>" + nom[i].childNodes[0].nodeValue + "</h3>";
+                 marker = L.marker([x[i].getAttribute('latP1'), x[i].getAttribute('lngP1')]).addTo(slopesP1);
+                 marker.bindPopup(info + " Parking" + "<ul><li>" + x[i].getAttribute('latlng2P1') + "</li>" + "<li>" + x[i].getAttribute('latP1') + ", " + x[i].getAttribute('lngP1') + "</li></ul>");
+                 marker = L.marker([x[i].getAttribute('latP2'), x[i].getAttribute('lngP2')]).addTo(slopesP2);
+                 marker.bindPopup(info + " P2" + "<ul><li>" + x[i].getAttribute('latlng2P2') + "</li>" + "<li>" + x[i].getAttribute('latP2') + ", " + x[i].getAttribute('lngP2') + "</li></ul>");
+                 marker = L.marker([x[i].getAttribute('latP3'), x[i].getAttribute('lngP3')]).addTo(slopesP3);
+                 marker.bindPopup(info + " P3" + "<ul><li>" + x[i].getAttribute('latlng2P3') + "</li>" + "<li>" + x[i].getAttribute('latP3') + ", " + x[i].getAttribute('lngP3') + "</li></ul>");
+
                  }
             }
 
