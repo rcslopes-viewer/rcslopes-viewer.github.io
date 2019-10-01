@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
+        <link rel="stylesheet" href="css/leaflet-search.css" />
         <style type="text/css">
         html, body, #map {
            height:100%;
@@ -17,6 +18,8 @@
         <div id="map"></div>
         <!-- Make sure you put this AFTER Leaflet's CSS -->
         <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin=""></script>
+        <!-- https://github.com/stefanocudini/leaflet-search -->
+        <script src="js/leaflet-search.js"></script>
 	<script type="text/javascript">
             var lat = 46.227638;
             var lon = 2.213749;
@@ -78,6 +81,34 @@
  	      };
 
 	      L.control.layers(baseLayers, overlays).addTo(map);
+
+              map.addControl(new L.Control.Scale({maxWidth: 200, position: 'bottomleft', imperial: false}));
+
+              map.addControl( new L.Control.Search({
+                 url: 'https://nominatim.openstreetmap.org/search?format=json&accept-language=fr-FR&q={s}',
+                 jsonpParam: 'json_callback',
+                 propertyName: 'display_name',
+                 propertyLoc: ['lat','lon'],
+                 markerLocation: true,
+                 autoType: false,
+                 autoCollapse: true,
+                 minLength: 2,
+                 zoom:14,
+                 position:'topleft',
+                 textPlaceholder: 'Recherche par lieu...',
+                 textCancel: 'Annuler',
+                 textErr: 'Aucun résultat trouvé',
+              }) );
+
+              map.addControl( new L.Control.Search({
+                 layer: slopes,
+                 position:'topright',
+                 initial: false,
+                 zoom:14,
+                 textPlaceholder: 'Recherche par pente/département...',
+                 textCancel: 'Annuler',
+                 textErr: 'Aucune pente trouvée',
+              }) );
             }
 
             function loadXMLDoc() {
@@ -107,7 +138,8 @@
                  if (author != "0") {
                      info += " par " + author;
                  }
-                 marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')]).addTo(slopes);
+                 marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {title: nom[i].childNodes[0].nodeValue + " - " + x[i].getAttribute('dep')}).addTo(slopes);
+
                  marker.bindPopup(info);
                  info =  "<h3>" + nom[i].childNodes[0].nodeValue + "</h3>";
                  marker = L.marker([x[i].getAttribute('latP1'), x[i].getAttribute('lngP1')]).addTo(slopesP1);
