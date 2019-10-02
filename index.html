@@ -138,7 +138,18 @@
                  if (author != "0") {
                      info += " par " + author;
                  }
-                 marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {title: nom[i].childNodes[0].nodeValue + " - " + x[i].getAttribute('dep')}).addTo(slopes);
+
+                 if (x[i].getAttribute('pays') == "0") {
+                    marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {title: nom[i].childNodes[0].nodeValue}).addTo(slopes);
+                 } else if (x[i].getAttribute('pays') == "fr") {
+                    var dept = x[i].getAttribute('dep').toString();
+                    if (dept.length == 1) {
+                        dept = "0" + dept;
+                    }                    
+                    marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {title: nom[i].childNodes[0].nodeValue + " - " + x[i].getAttribute('pays').toUpperCase() + " " + dept}).addTo(slopes);
+                 } else {
+                    marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {title: nom[i].childNodes[0].nodeValue + " - " + x[i].getAttribute('pays').toUpperCase()}).addTo(slopes);              
+                 }
 
                  marker.bindPopup(info);
                  info =  "<h3>" + nom[i].childNodes[0].nodeValue + "</h3>";
