@@ -21,14 +21,98 @@
         <!-- https://github.com/stefanocudini/leaflet-search -->
         <script src="js/leaflet-search.js"></script>
 	<script type="text/javascript">
+            var map;
             var lat = 46.227638;
             var lon = 2.213749;
 
+            var orient = L.layerGroup();   // Orientation vent
             var slopes = L.layerGroup();   // Pente
             var slopesP1 = L.layerGroup(); // Parking
             var slopesP2 = L.layerGroup();
             var slopesP3 = L.layerGroup();
             slopes.getAttribution = function() { return '<a href="https://www.rc-slopes.com">RC-Slopes</a>'; };
+
+            // Wind orientation icons
+            var N = L.icon({
+	      iconUrl: 'images/N.png',
+              iconSize: [42, 74], // size of the icon
+              iconAnchor:   [21, 114], // point of the icon which will correspond to marker's location
+            });
+            var NNE = L.icon({
+	      iconUrl: 'images/NNE.png',
+              iconSize: [62, 111],
+              iconAnchor:   [0, 111], 
+            });
+            var NE = L.icon({
+	      iconUrl: 'images/NE.png',
+              iconSize: [93, 93],
+              iconAnchor:   [0, 93], 
+            });
+            var ENE = L.icon({
+	      iconUrl: 'images/ENE.png',
+              iconSize: [111, 62],
+              iconAnchor:   [0, 62], 
+            });
+            var E = L.icon({
+	      iconUrl: 'images/E.png',
+              iconSize: [114, 42],
+              iconAnchor:   [0, 21], 
+            });
+            var ESE = L.icon({
+	      iconUrl: 'images/ESE.png',
+              iconSize: [111, 62],
+              iconAnchor:   [0, 0], 
+            });
+            var SE = L.icon({
+	      iconUrl: 'images/SE.png',
+              iconSize: [93, 93],
+              iconAnchor:   [0, 0], 
+            });
+            var SSE = L.icon({
+	      iconUrl: 'images/SSE.png',
+              iconSize: [62, 111],
+              iconAnchor:   [0, 0], 
+            });
+            var S = L.icon({
+	      iconUrl: 'images/S.png',
+              iconSize: [42, 113],
+              iconAnchor:   [21, 0], 
+            });
+            var SSW = L.icon({
+	      iconUrl: 'images/SSW.png',
+              iconSize: [62, 111],
+              iconAnchor:   [62, 0], 
+            });
+            var SW = L.icon({
+	      iconUrl: 'images/SW.png',
+              iconSize: [93, 93],
+              iconAnchor:   [93, 0], 
+            });
+            var WSW = L.icon({
+	      iconUrl: 'images/WSW.png',
+              iconSize: [111, 62],
+              iconAnchor:   [111, 0], 
+            });
+            var W = L.icon({
+	      iconUrl: 'images/W.png',
+              iconSize: [114, 42],
+              iconAnchor:   [114, 21], 
+            });
+            var WNW = L.icon({
+	      iconUrl: 'images/WNW.png',
+              iconSize: [111, 62],
+              iconAnchor:   [111, 62], 
+            });
+            var NW = L.icon({
+	      iconUrl: 'images/NW.png',
+              iconSize: [94, 94],
+              iconAnchor:   [94, 94], 
+            });
+            var NNW = L.icon({
+	      iconUrl: 'images/NNW.png',
+              iconSize: [62, 111],
+              iconAnchor:   [62, 111], 
+            });
 
             // Fonction d'initialisation de la carte
             function initMap() {
@@ -67,14 +151,15 @@
               };
 
 
-	      var map = L.map('map', {
+	      map = L.map('map', {
 		center: [lat, lon],
 		zoom: 6,
 		layers: [Esri_WorldImagery, slopes]
 	      });
 
 	      var overlays = {
-		"Pentes": slopes,
+      		"Pentes": slopes,
+                // "Orientation": orient,
 		"Parking": slopesP1,
 		"P2": slopesP2,
 		"P3": slopesP3
@@ -140,18 +225,19 @@
                  }
 
                  if (x[i].getAttribute('pays') == "0") {
-                    marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {title: nom[i].childNodes[0].nodeValue}).addTo(slopes);
+                    marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {title: nom[i].childNodes[0].nodeValue, zIndexOffset: 1000}).addTo(slopes);
                  } else if (x[i].getAttribute('pays') == "fr") {
                     var dept = x[i].getAttribute('dep').toString();
                     if (dept.length == 1) {
                         dept = "0" + dept;
                     }                    
-                    marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {title: nom[i].childNodes[0].nodeValue + " - " + x[i].getAttribute('pays').toUpperCase() + " " + dept}).addTo(slopes);
+                    marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {title: nom[i].childNodes[0].nodeValue + " - " + x[i].getAttribute('pays').toUpperCase() + " " + dept, zIndexOffset: 1000}).addTo(slopes);
                  } else {
-                    marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {title: nom[i].childNodes[0].nodeValue + " - " + x[i].getAttribute('pays').toUpperCase()}).addTo(slopes);              
+                    marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {title: nom[i].childNodes[0].nodeValue + " - " + x[i].getAttribute('pays').toUpperCase(), zIndexOffset: 1000}).addTo(slopes);              
                  }
 
                  marker.bindPopup(info);
+
                  info =  "<h3>" + nom[i].childNodes[0].nodeValue + "</h3>";
                  marker = L.marker([x[i].getAttribute('latP1'), x[i].getAttribute('lngP1')]).addTo(slopesP1);
                  marker.bindPopup(info + " Parking" + "<ul><li>" + x[i].getAttribute('latlng2P1') + "</li>" + "<li>" + x[i].getAttribute('latP1') + ", " + x[i].getAttribute('lngP1') + "</li></ul>");
@@ -160,12 +246,87 @@
                  marker = L.marker([x[i].getAttribute('latP3'), x[i].getAttribute('lngP3')]).addTo(slopesP3);
                  marker.bindPopup(info + " P3" + "<ul><li>" + x[i].getAttribute('latlng2P3') + "</li>" + "<li>" + x[i].getAttribute('latP3') + ", " + x[i].getAttribute('lngP3') + "</li></ul>");
 
+                 // Get slope wind orientations
+                 var legende_str = x[i].getAttribute('legendeFR');
+                 var words = legende_str.split('-');
+
+                 if (words[1].includes(" N ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: N}).addTo(orient);
+                 }
+                 if (words[1].includes(" NNE ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: NNE}).addTo(orient);
+                 }
+                 if (words[1].includes(" NE ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: NE}).addTo(orient);
+                 }
+                 if (words[1].includes(" ENE ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: ENE}).addTo(orient);
+                 }
+                 if (words[1].includes(" E ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: E}).addTo(orient);
+                 }
+                 if (words[1].includes(" ESE ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: ESE}).addTo(orient);
+                 }
+                 if (words[1].includes(" SE ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: SE}).addTo(orient);
+                 }
+                 if (words[1].includes(" SSE ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: SSE}).addTo(orient);
+                 }
+                 if (words[1].includes(" S ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: S}).addTo(orient);
+                 }
+                 if (words[1].includes(" SSW ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: SSW}).addTo(orient);
+                 }
+                 if (words[1].includes(" SW ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: SW}).addTo(orient);
+                 }
+                 if (words[1].includes(" WSW ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: WSW}).addTo(orient);
+                 }
+                 if (words[1].includes(" W ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: W}).addTo(orient);
+                 }
+                 if (words[1].includes(" WNW ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: WNW}).addTo(orient);
+                 }
+                 if (words[1].includes(" NW ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: NW}).addTo(orient);
+                 }
+                 if (words[1].includes(" NNW ")) {
+                    L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {icon: NNW}).addTo(orient);
+                 }
+
                  }
             }
 
             window.onload = function(){
 		initMap(); 
                 loadXMLDoc();
+
+                // Add event listeners
+                map.on('zoomend', function() {
+                   if (map.getZoom() < 13){
+                      map.removeLayer(orient);
+                   } else if (map.hasLayer(slopes)){
+                      map.addLayer(orient);
+                   }
+                });
+
+                map.on('overlayadd', function() {
+                   if (map.getZoom() > 12 && map.hasLayer(slopes)){
+                      map.addLayer(orient);
+                   }
+                });  
+
+                map.on('overlayremove', function() {
+                   if (!map.hasLayer(slopes) && map.hasLayer(orient)){
+                      map.removeLayer(orient);
+                   }
+                });    
+
             };
          </script>
     </body>
