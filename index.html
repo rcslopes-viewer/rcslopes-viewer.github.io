@@ -218,15 +218,16 @@
                  info =  "<h3>" + nom[i].childNodes[0].nodeValue + "</h3>";
                  info += "<ul><li>" + x[i].getAttribute('latlng2') + "</li>";
                  info += "<li>" + x[i].getAttribute('lat') + ", " + x[i].getAttribute('lng') + "</li></ul>";
-                 info += "<p>Description : " + x[i].getAttribute('legendeFR') + "</p><br>Ajoutée le " + x[i].getAttribute('dat') 
-                 var author = x[i].getAttribute('psd');
-                 if (author != "0") {
-                     info += " par " + author;
-                 }
+                 info += "<p>Description : " + x[i].getAttribute('legendeFR') + "</p>";
 
                  if (x[i].getAttribute('pays') == "0") {
                     marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {title: nom[i].childNodes[0].nodeValue, zIndexOffset: 1000}).addTo(slopes);
                  } else if (x[i].getAttribute('pays') == "fr") {
+                    // Add geoportail link (french)
+                    info += "<p><a href='http://www.geoportail.gouv.fr/accueil?c=" + x[i].getAttribute('lng') + "," + x[i].getAttribute('lat');
+                    info += "&z=14&l0=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN-EXPRESS.STANDARD::GEOPORTAIL:OGC:WMTS(1)&l1=TRANSPORTS.DRONES.RESTRICTIONS::GEOPORTAIL:OGC:WMTS(0.7)&permalink=yes' ";
+                    info += "target='_blank'><img src='images/geoportail_icon.png' title='Voir les restrictions sur Géoportail' alt='Géoportail' '></a></p>";
+
                     var dept = x[i].getAttribute('dep').toString();
                     if (dept.length == 1) {
                         dept = "0" + dept;
@@ -234,6 +235,12 @@
                     marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {title: nom[i].childNodes[0].nodeValue + " - " + x[i].getAttribute('pays').toUpperCase() + " " + dept, zIndexOffset: 1000}).addTo(slopes);
                  } else {
                     marker = L.marker([x[i].getAttribute('lat'), x[i].getAttribute('lng')], {title: nom[i].childNodes[0].nodeValue + " - " + x[i].getAttribute('pays').toUpperCase(), zIndexOffset: 1000}).addTo(slopes);              
+                 }
+
+                 info += "Ajoutée le " + x[i].getAttribute('dat') 
+                 var author = x[i].getAttribute('psd');
+                 if (author != "0") {
+                     info += " par " + author;
                  }
 
                  marker.bindPopup(info);
