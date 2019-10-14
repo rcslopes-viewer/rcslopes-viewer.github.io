@@ -30,7 +30,17 @@
             var slopesP1 = L.layerGroup(); // Parking
             var slopesP2 = L.layerGroup();
             var slopesP3 = L.layerGroup();
+            var aip_rc = L.layerGroup();   // sites RC
             slopes.getAttribution = function() { return '<a href="https://www.rc-slopes.com">RC-Slopes</a>'; };
+            aip_rc.getAttribution = function() { return 'Aviation Civile <a href="https://www.sia.aviation-civile.gouv.fr/dvd/eAIP_18_JUL_2019/FRANCE/AIRAC-2019-07-18/html/eAIP/FR-ENR-5.5-fr-FR.html">FR</a>'; };
+
+            var RCmarker = L.icon({
+	      iconUrl: 'images/marker-rc.png',
+	      //shadowUrl: 'leaf-shadow.png',
+              iconSize:     [26, 45], 
+	      iconAnchor:   [13, 45], 
+	      popupAnchor:  [0, -40]
+            });
 
             // Wind orientation icons
             var N = L.icon({
@@ -162,7 +172,8 @@
                 // "Orientation": orient,
 		"Parking": slopesP1,
 		"P2": slopesP2,
-		"P3": slopesP3
+		"P3": slopesP3,
+		"Sites RC": aip_rc
  	      };
 
 	      L.control.layers(baseLayers, overlays).addTo(map);
@@ -185,8 +196,10 @@
                  textErr: 'Aucun résultat trouvé',
               }) );
 
+              var searchLayers = L.featureGroup([slopes, aip_rc]);
+
               map.addControl( new L.Control.Search({
-                 layer: slopes,
+                 layer: searchLayers,
                  position:'topright',
                  initial: false,
                  zoom:14,
@@ -194,20 +207,22 @@
                  textCancel: 'Annuler',
                  textErr: 'Aucune pente trouvée',
               }) );
+
+              map.removeLayer(aip_rc);
             }
 
             function loadXMLDoc() {
                var xmlhttp = new XMLHttpRequest();
                xmlhttp.onreadystatechange = function() {
                   if (this.readyState == 4 && this.status == 200) {
-                     myFunction(this);
+                     addRCSlopes_Layer(this);
                   }
                };
                xmlhttp.open("GET", "rc-slopes-data.xml", true);
                xmlhttp.send();
             }
 
-            function myFunction(xml) {
+            function addRCSlopes_Layer(xml) {
                 var x, nom, i, xmlDoc, txt, marker, info;
                 xmlDoc = xml.responseXML;
                 txt = "";
@@ -309,9 +324,66 @@
                  }
             }
 
+            function loadXMLDoc2() {
+               var xmlhttp = new XMLHttpRequest();
+               xmlhttp.onreadystatechange = function() {
+                  if (this.readyState == 4 && this.status == 200) {
+                     addAIP_Layer(this);
+                  }
+               };
+               xmlhttp.open("GET", "AIP_FRANCE_ENR5.5_2.xml", true);
+               xmlhttp.send();
+            }
+
+            function ParseDMS(input) {
+               var parts, latlong=0;
+               if (input) {
+                  parts = input.split(/[^\d\w]+/);
+                  latlong = ConvertDMSToDec(parts[0], parts[1], parts[2], parts[3]);
+               }
+               //alert(input + " = " + parts[0] + " " +  parts[1] + "  " + parts[2] + " " + parts[3] +  " convertion en " + latlong);
+               return latlong;
+            }
+
+            function ConvertDMSToDec(degrees, minutes, seconds, direction) {
+               var dec = (degrees*1) + (minutes/60) + (seconds/(60*60));
+               if (direction == "S" || direction == "W") {
+                  dec = dec * -1;
+               } 
+               return dec;
+            }
+
+            function addAIP_Layer(xml) {
+                var x, nom, i, xmlDoc, txt, marker, info, max_alt, dec_lat, dec_long;
+                xmlDoc = xml.responseXML;
+                txt = "";
+                x = xmlDoc.getElementsByTagName("marker");
+
+                for (i = 0; i< x.length; i++) {
+
+                 if (x[i].getAttribute('txt_activity') == "aéromodélisme") {
+                    dec_lat = ParseDMS(x[i].getAttribute('geo_lat')).toFixed(6);
+                    dec_long = ParseDMS(x[i].getAttribute('geo_long')).toFixed(6);
+
+                    info =  "<h3>Aéromodélisme - " + x[i].getAttribute('nom_usuel') + "</h3>";
+                    info += "<ul><li>" + x[i].getAttribute('geo_lat') + " , " + x[i].getAttribute('geo_long') + "</li>";
+                    info += "<li>" + dec_lat + ", " + dec_long + "</li></ul>";
+                    max_alt = "";
+                    if (x[i].getAttribute('distver_max')) {
+                       max_alt = "Max :" + x[i].getAttribute('distver_max') + " "; 
+                    }
+                    info += "<p>Description : " + max_alt + x[i].getAttribute('txt_rmk_nat') + "</p>";
+                 
+                    marker = L.marker([dec_lat, dec_long], {icon: RCmarker, title: "AIP " + x[i].getAttribute('txt_activity') + " - " + x[i].getAttribute('nom_usuel'), zIndexOffset: 1000}).addTo(aip_rc);
+                    marker.bindPopup(info);
+                 }
+               }
+            }
+
             window.onload = function(){
 		initMap(); 
-                loadXMLDoc();
+                loadXMLDoc();  // RcSlopes
+                loadXMLDoc2(); // SIA 5.5
 
                 // Add event listeners
                 map.on('zoomend', function() {
